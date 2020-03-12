@@ -1,4 +1,4 @@
-import 'dart:html';
+
 
 import 'package:flutter/material.dart';
 
@@ -8,9 +8,6 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  String _emailValue;
-  bool _acceptTerms = false;
-  String _passwordValue;
   final Map<String, dynamic> _formData = {
     'email': null,
     'password': null,

@@ -8,8 +8,9 @@ class ProductsAdminPage extends StatelessWidget {
   final Function deleteProduct;
   final Function updateProduct;
   final List<Map<String, dynamic>> products;
-  
-  ProductsAdminPage(this.addProduct, this.deleteProduct, this.products,this.updateProduct);
+
+  ProductsAdminPage(
+      this.addProduct, this.deleteProduct, this.products, this.updateProduct);
 
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
@@ -57,7 +58,11 @@ class ProductsAdminPage extends StatelessWidget {
             ProductEditPage(
               addProduct: addProduct,
             ),
-            ProductListPage( products: products,updateProduct: updateProduct)
+            ProductListPage(
+              products: products,
+              updateProduct: updateProduct,
+              deleteProduct: deleteProduct,
+            )
           ],
         ),
       ),

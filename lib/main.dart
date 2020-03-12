@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       // debugShowMaterialGrid: true,
       theme: ThemeData(
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
           primarySwatch: Colors.deepOrange,
           accentColor: Colors.deepPurple,
           buttonColor: Colors.deepPurple,
