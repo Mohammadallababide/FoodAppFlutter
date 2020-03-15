@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
-import '../widgets/helpers/13.2 ensure_visible.dart.dart';
+
+import 'package:scoped_model/scoped_model.dart';
+
+import '../widgets/helpers/ensure_visible.dart';
+import '../models/product.dart';
+import '../scoped-models/products.dart';
 
 class ProductEditPage extends StatefulWidget {
   final Function addProduct;
-  final Map<String, dynamic> product;
   final Function updateProduct;
-  final int indexProduct;
+  final Product product;
+  final int productIndex;
+
   ProductEditPage(
-      {this.addProduct, this.updateProduct, this.product, this.indexProduct});
+      {this.addProduct, this.updateProduct, this.product, this.productIndex});
+
   @override
   State<StatefulWidget> createState() {
     return _ProductEditPageState();
@@ -15,30 +22,28 @@ class ProductEditPage extends StatefulWidget {
 }
 
 class _ProductEditPageState extends State<ProductEditPage> {
-  String titleValue;
-  String descriptionValue;
-  double priceValue;
   final Map<String, dynamic> _formData = {
     'title': null,
     'description': null,
     'price': null,
     'image': 'assets/food.jpg'
   };
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final titleFocusNode = FocusNode();
-  final descriptionFocusNode = FocusNode();
-  final priceFocusNode = FocusNode();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _titleFocusNode = FocusNode();
+  final _descriptionFocusNode = FocusNode();
+  final _priceFocusNode = FocusNode();
+
   Widget _buildTitleTextField() {
     return EnsureVisibleWhenFocused(
-      focusNode: titleFocusNode,
+      focusNode: _titleFocusNode,
       child: TextFormField(
-        focusNode: titleFocusNode,
+        focusNode: _titleFocusNode,
         decoration: InputDecoration(labelText: 'Product Title'),
-        initialValue: widget.product == null ? '' : widget.product['title'],
-        // autovalidate: true,
+        initialValue: widget.product == null ? '' : widget.product.title,
         validator: (String value) {
+          // if (value.trim().length <= 0) {
           if (value.isEmpty || value.length < 5) {
-            return 'title is requered and should be more than 5 charecter';
+            return 'Title is required and should be 5+ characters long.';
           }
         },
         onSaved: (String value) {
@@ -48,18 +53,18 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  Widget _buildDescraptionTextField() {
+  Widget _buildDescriptionTextField() {
     return EnsureVisibleWhenFocused(
-      focusNode: descriptionFocusNode,
+      focusNode: _descriptionFocusNode,
       child: TextFormField(
-        focusNode: descriptionFocusNode,
+        focusNode: _descriptionFocusNode,
         maxLines: 4,
         decoration: InputDecoration(labelText: 'Product Description'),
-        initialValue:
-            widget.product == null ? '' : widget.product['description'],
+        initialValue: widget.product == null ? '' : widget.product.description,
         validator: (String value) {
+          // if (value.trim().length <= 0) {
           if (value.isEmpty || value.length < 10) {
-            return 'the descraption is requered and should be more than 10 charecters';
+            return 'Description is required and should be 10+ characters long.';
           }
         },
         onSaved: (String value) {
@@ -69,25 +74,38 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  Widget _buildPhoneTextField() {
+  Widget _buildPriceTextField() {
     return EnsureVisibleWhenFocused(
-      focusNode: priceFocusNode,
+      focusNode: _priceFocusNode,
       child: TextFormField(
-        focusNode: priceFocusNode,
+        focusNode: _priceFocusNode,
         keyboardType: TextInputType.number,
         decoration: InputDecoration(labelText: 'Product Price'),
         initialValue:
-            widget.product == null ? '' : widget.product['price'].toString(),
+            widget.product == null ? '' : widget.product.price.toString(),
         validator: (String value) {
+          // if (value.trim().length <= 0) {
           if (value.isEmpty ||
               !RegExp(r'^(?:[1-9]\d*|0)?(?:\.\d+)?$').hasMatch(value)) {
-            return 'the price is required and should be a number';
+            return 'Price is required and should be a number.';
           }
         },
         onSaved: (String value) {
           _formData['price'] = double.parse(value);
         },
       ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return ScopedModelDescendant<ProductsModel>(
+      builder: (BuildContext context, Widget child, ProductsModel model) {
+        return RaisedButton(
+          child: Text('Save'),
+          textColor: Colors.white,
+          onPressed: () => _submitForm(model.addProduct, model.updateProduct),
+        );
+      },
     );
   }
 
@@ -102,22 +120,25 @@ class _ProductEditPageState extends State<ProductEditPage> {
       child: Container(
         margin: EdgeInsets.all(10.0),
         child: Form(
-          key: formKey,
+          key: _formKey,
           child: ListView(
             padding: EdgeInsets.symmetric(horizontal: targetPadding / 2),
             children: <Widget>[
               _buildTitleTextField(),
-              _buildDescraptionTextField(),
-              _buildPhoneTextField(),
+              _buildDescriptionTextField(),
+              _buildPriceTextField(),
               SizedBox(
                 height: 10.0,
               ),
-              RaisedButton(
-                child: Text('Save'),
-                color: Theme.of(context).accentColor,
-                textColor: Colors.white,
-                onPressed: _submitForm,
-              )
+              _buildSubmitButton(),
+              // GestureDetector(
+              //   onTap: _submitForm,
+              //   child: Container(
+              //     color: Colors.green,
+              //     padding: EdgeInsets.all(5.0),
+              //     child: Text('My Button'),
+              //   ),
+              // )
             ],
           ),
         ),
@@ -125,16 +146,30 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  void _submitForm() {
-    if (!formKey.currentState.validate()) {
+  void _submitForm(Function addProduct, Function updateProduct) {
+    if (!_formKey.currentState.validate()) {
       return;
     }
-    formKey.currentState.save();
+    _formKey.currentState.save();
     if (widget.product == null) {
-      widget.addProduct(_formData);
+      addProduct(
+        Product(
+            title: _formData['title'],
+            description: _formData['description'],
+            price: _formData['price'],
+            image: _formData['image']),
+      );
     } else {
-      widget.updateProduct(widget.indexProduct, _formData);
+      updateProduct(
+        widget.productIndex,
+        Product(
+            title: _formData['title'],
+            description: _formData['description'],
+            price: _formData['price'],
+            image: _formData['image']),
+      );
     }
+
     Navigator.pushReplacementNamed(context, '/products');
   }
 
