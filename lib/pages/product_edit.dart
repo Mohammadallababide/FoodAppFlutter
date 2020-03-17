@@ -95,7 +95,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           child: Text('Save'),
           textColor: Colors.white,
           onPressed: () => _submitForm(
-              model.addProduct, model.updateProduct, model.selctedProductIndex),
+              model.addProduct, model.updateProduct,model.selectedProduct, model.selctedProductIndex),
         );
       },
     );
@@ -138,7 +138,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  void _submitForm(Function addProduct, Function updateProduct,
+  void _submitForm(Function addProduct, Function updateProduct,Function setSelctedProduct,
       [int selectedProductIndex]) {
     if (!_formKey.currentState.validate()) {
       return;
@@ -160,7 +160,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       );
     }
 
-    Navigator.pushReplacementNamed(context, '/products');
+    Navigator.pushReplacementNamed(context, '/products').then((_)=> setSelctedProduct(null));
   }
 
   @override

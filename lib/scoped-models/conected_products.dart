@@ -16,8 +16,7 @@ mixin ConectedProductModel on Model {
         userEmail: _authenticatedUser.email,
         userId: _authenticatedUser.id);
     _products.add(newProduct);
-    //  to unselcted product when you add product
-    _selProductIndex = null;
+
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();
   }
@@ -47,6 +46,9 @@ mixin ProductsModel on ConectedProductModel {
 // to set index to the selctedProductIndex
   void selectedProduct(int index) {
     _selProductIndex = index;
+    if (index == null) {
+      notifyListeners();
+    }
   }
 
   int get selctedProductIndex {
@@ -60,8 +62,9 @@ mixin ProductsModel on ConectedProductModel {
     return _products[selctedProductIndex];
   }
 
-  void updateProduct( {String title, double price, String description, String image}) {
-     Product updateProduct = Product(
+  void updateProduct(
+      {String title, double price, String description, String image}) {
+    Product updateProduct = Product(
         title: title,
         image: image,
         price: price,
@@ -69,16 +72,14 @@ mixin ProductsModel on ConectedProductModel {
         userEmail: selctedProduct.userEmail,
         userId: selctedProduct.userId);
     _products[selctedProductIndex] = updateProduct;
-    //  to unselcted product when you update product
-    _selProductIndex = null;
+
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();
   }
 
   void deleteProduct() {
     _products.removeAt(selctedProductIndex);
-    //  to unselcted product when you delete product
-    _selProductIndex = null;
+
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();
   }
@@ -87,7 +88,7 @@ mixin ProductsModel on ConectedProductModel {
     final bool isCurrentFavorite = selctedProduct.isFavorite;
     final bool newFavorite = !isCurrentFavorite;
     final Product upadateProduct = Product(
-      description: selctedProduct.description, 
+      description: selctedProduct.description,
       price: selctedProduct.price,
       title: selctedProduct.title,
       image: selctedProduct.image,
@@ -99,7 +100,6 @@ mixin ProductsModel on ConectedProductModel {
 
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();
-    _selProductIndex = null;
   }
 
   void toggelDissplayMode() {
@@ -108,7 +108,7 @@ mixin ProductsModel on ConectedProductModel {
   }
 }
 
- mixin UserModel on ConectedProductModel {
+mixin UserModel on ConectedProductModel {
   void Login(String emial, String password) {
     _authenticatedUser =
         User(email: emial, password: password, id: 'fafadsjnl');
