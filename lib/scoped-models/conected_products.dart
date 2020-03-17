@@ -1,6 +1,8 @@
 import 'package:scoped_model/scoped_model.dart';
 import '../models/product.dart';
 import '../models/user.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 mixin ConectedProductModel on Model {
   List<Product> _products = [];
@@ -8,17 +10,30 @@ mixin ConectedProductModel on Model {
   User _authenticatedUser;
   void addProduct(
       {String title, double price, String description, String image}) {
-    Product newProduct = Product(
-        title: title,
-        image: image,
-        price: price,
-        description: description,
-        userEmail: _authenticatedUser.email,
-        userId: _authenticatedUser.id);
-    _products.add(newProduct);
-
-    //  for update the widget that wraping by model when exucute this function
-    notifyListeners();
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'price': price,
+      'description': description,
+      'image':
+          'https://www.google.com/url?sa=i&source=images&cd=&ved=2ahUKEwjw1fSF_KHoAhV6mXIEHcLBDQcQjRx6BAgBEAQ&url=https%3A%2F%2Fwww.tareekaa.com%2F%25D8%25B7%25D8%25A8%25D9%2582-%25D8%25A7%25D9%2584%25D9%258A%25D9%2588%25D9%2585%2F%25D8%25B7%25D8%25A8%25D8%25AE%2F65770-%25D8%25B7%25D8%25B1%25D9%258A%25D9%2582%25D8%25A9-%25D8%25B7%25D8%25A8%25D8%25AE-%25D8%25A7%25D9%2584%25D8%25B3%25D8%25AC%25D9%2582%25D8%25A7%25D8%25AA-%25D8%25A7%25D9%2584%25D8%25B4%25D8%25A7%25D9%2585%25D9%258A%25D8%25A9-%25D8%25B9%25D9%2584%25D9%2589-%25D8%25A7%25D9%2584%25D8%25AD%25D8%25B7%25D8%25A8&psig=AOvVaw1r7RaSut-KTctSS6Pw5ENL&ust=1584550270800856',
+    };
+    http
+        .post('https://flutter-products-152af.firebaseio.com/products.json',
+            body: json.encode(productData))
+        .then((http.Response res) {
+      final Map<String, dynamic> responseDate = json.decode(res.body);
+      Product newProduct = Product(
+          id: responseDate['name'],
+          title: title,
+          image: image,
+          price: price,
+          description: description,
+          userEmail: _authenticatedUser.email,
+          userId: _authenticatedUser.id);
+      _products.add(newProduct);
+      //  for update the widget that wraping by model when exucute this function
+      notifyListeners();
+    });
   }
 }
 mixin ProductsModel on ConectedProductModel {
@@ -60,6 +75,12 @@ mixin ProductsModel on ConectedProductModel {
       return null;
     }
     return _products[selctedProductIndex];
+  }
+
+  void fetchProducts(){
+  http.get('https://flutter-products-152af.firebaseio.com/products.json').then((http.Response res){
+    print(json.decode(res.body));
+  });
   }
 
   void updateProduct(
