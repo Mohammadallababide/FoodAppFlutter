@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         // debugShowMaterialGrid: true,
         theme: ThemeData(
-            brightness: Brightness.dark,
+            brightness: Brightness.light,
             primarySwatch: Colors.deepOrange,
             accentColor: Colors.deepPurple,
             buttonColor: Colors.deepPurple),
@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           '/': (BuildContext context) => AuthPage(),
           '/products': (BuildContext context) => ProductsPage(model),
-          '/admin': (BuildContext context) => ProductsAdminPage(),
+          '/admin': (BuildContext context) => ProductsAdminPage(model),
         },
         onGenerateRoute: (RouteSettings settings) {
           final List<String> pathElements = settings.name.split('/');

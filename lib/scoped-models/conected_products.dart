@@ -10,6 +10,7 @@ mixin ConectedProductModel on Model {
   int _selProductIndex;
   bool _isLoading = false;
   User _authenticatedUser;
+  //  here in the addProduct we make the return type of the function is Future to use then method
   Future<Null> addProduct(
       {String title, double price, String description, String image}) {
     _isLoading = true;
@@ -115,19 +116,37 @@ mixin ProductsModel on ConectedProductModel {
     });
   }
 
-  void updateProduct(
+  Future<Null> updateProduct(
       {String title, double price, String description, String image}) {
-    Product updateProduct = Product(
-        title: title,
-        image: image,
-        price: price,
-        description: description,
-        userEmail: selctedProduct.userEmail,
-        userId: selctedProduct.userId);
-    _products[selctedProductIndex] = updateProduct;
-
-    //  for update the widget that wraping by model when exucute this function
+    _isLoading = true;
     notifyListeners();
+    final Map<String, dynamic> updateData = {
+      'title': title,
+      'price': price,
+      'description': description,
+      'image':
+          'https://static.onecms.io/wp-content/uploads/sites/9/2019/10/chocolate-scorecard-child-labor-FT-BLOG1019.jpg',
+      'userEmail': _authenticatedUser.email,
+      'userId': _authenticatedUser.id,
+    };
+    return http
+        .put(
+            'https://flutter-products-152af.firebaseio.com/products/${selctedProduct.id}.json',
+            body: json.encode(updateData))
+        .then((http.Response response) {
+      _isLoading = false;
+      Product updateProduct = Product(
+          id: selctedProduct.id,
+          title: title,
+          image: image,
+          price: price,
+          description: description,
+          userEmail: selctedProduct.userEmail,
+          userId: selctedProduct.userId);
+      _products[selctedProductIndex] = updateProduct;
+      //  for update the widget that wraping by model when exucute this function
+      notifyListeners();
+    });
   }
 
   void deleteProduct() {

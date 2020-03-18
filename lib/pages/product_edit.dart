@@ -92,7 +92,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
         return model.isLoading
-            ?   Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : RaisedButton(
                 child: Text('Save'),
                 textColor: Colors.white,
@@ -160,14 +160,18 @@ class _ProductEditPageState extends State<ProductEditPage> {
         Navigator.pushReplacementNamed(context, '/products')
             .then((_) => setSelctedProduct(null));
       });
-      // here we use then feture conseption for see spinner  before navigate to the products page so navigate aaction will wiat until end add products 
+      // here we use then future conseption for see spinner  before navigate to the products
+      // page so navigate aaction will wiat until end add products
     } else {
       updateProduct(
-        title: _formData['title'], 
+        title: _formData['title'],
         description: _formData['description'],
         price: _formData['price'],
         image: _formData['image'],
-      );
+      ).then((_) {
+        Navigator.pushReplacementNamed(context, '/products')
+            .then((_) => setSelctedProduct(null));
+      });
     }
   }
 
