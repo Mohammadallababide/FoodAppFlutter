@@ -150,7 +150,18 @@ mixin ProductsModel on ConectedProductModel {
   }
 
   void deleteProduct() {
+    _isLoading = true;
+    final deletedProductId = selctedProduct.id;
     _products.removeAt(selctedProductIndex);
+    _selProductIndex= null;
+     notifyListeners();
+    http
+        .delete(
+            'https://flutter-products-152af.firebaseio.com/products/${deletedProductId}.json')
+        .then((http.Response response) {
+      _isLoading = false;
+      notifyListeners();
+    });
 
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();

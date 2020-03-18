@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
 import 'package:scoped_model/scoped_model.dart';
-import 'dart:async';
 import '../widgets/helpers/ensure_visible.dart';
 import '../models/product.dart';
 import '../scoped-models/main.dart';
