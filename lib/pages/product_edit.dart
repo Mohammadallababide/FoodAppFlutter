@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:scoped_model/scoped_model.dart';
-
+import 'dart:async';
 import '../widgets/helpers/ensure_visible.dart';
 import '../models/product.dart';
 import '../scoped-models/main.dart';
@@ -91,12 +91,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
   Widget _buildSubmitButton() {
     return ScopedModelDescendant<MainModel>(
       builder: (BuildContext context, Widget child, MainModel model) {
-        return RaisedButton(
-          child: Text('Save'),
-          textColor: Colors.white,
-          onPressed: () => _submitForm(
-              model.addProduct, model.updateProduct,model.selectedProduct, model.selctedProductIndex),
-        );
+        return model.isLoading
+            ?   Center(child: CircularProgressIndicator())
+            : RaisedButton(
+                child: Text('Save'),
+                textColor: Colors.white,
+                onPressed: () => _submitForm(
+                    model.addProduct,
+                    model.updateProduct,
+                    model.selectedProduct,
+                    model.selctedProductIndex),
+              );
       },
     );
   }
@@ -138,7 +143,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  void _submitForm(Function addProduct, Function updateProduct,Function setSelctedProduct,
+  void _submitForm(
+      Function addProduct, Function updateProduct, Function setSelctedProduct,
       [int selectedProductIndex]) {
     if (!_formKey.currentState.validate()) {
       return;
@@ -150,17 +156,19 @@ class _ProductEditPageState extends State<ProductEditPage> {
         description: _formData['description'],
         price: _formData['price'],
         image: _formData['image'],
-      );
+      ).then((_) {
+        Navigator.pushReplacementNamed(context, '/products')
+            .then((_) => setSelctedProduct(null));
+      });
+      // here we use then feture conseption for see spinner  before navigate to the products page so navigate aaction will wiat until end add products 
     } else {
       updateProduct(
-        title: _formData['title'],
+        title: _formData['title'], 
         description: _formData['description'],
         price: _formData['price'],
         image: _formData['image'],
       );
     }
-
-    Navigator.pushReplacementNamed(context, '/products').then((_)=> setSelctedProduct(null));
   }
 
   @override

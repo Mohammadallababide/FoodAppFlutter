@@ -3,21 +3,27 @@ import '../models/product.dart';
 import '../models/user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 mixin ConectedProductModel on Model {
   List<Product> _products = [];
   int _selProductIndex;
+  bool _isLoading = false;
   User _authenticatedUser;
-  void addProduct(
+  Future<Null> addProduct(
       {String title, double price, String description, String image}) {
+    _isLoading = true;
+    notifyListeners();
     final Map<String, dynamic> productData = {
       'title': title,
       'price': price,
       'description': description,
       'image':
-          'https://www.google.com/url?sa=i&source=images&cd=&ved=2ahUKEwjw1fSF_KHoAhV6mXIEHcLBDQcQjRx6BAgBEAQ&url=https%3A%2F%2Fwww.tareekaa.com%2F%25D8%25B7%25D8%25A8%25D9%2582-%25D8%25A7%25D9%2584%25D9%258A%25D9%2588%25D9%2585%2F%25D8%25B7%25D8%25A8%25D8%25AE%2F65770-%25D8%25B7%25D8%25B1%25D9%258A%25D9%2582%25D8%25A9-%25D8%25B7%25D8%25A8%25D8%25AE-%25D8%25A7%25D9%2584%25D8%25B3%25D8%25AC%25D9%2582%25D8%25A7%25D8%25AA-%25D8%25A7%25D9%2584%25D8%25B4%25D8%25A7%25D9%2585%25D9%258A%25D8%25A9-%25D8%25B9%25D9%2584%25D9%2589-%25D8%25A7%25D9%2584%25D8%25AD%25D8%25B7%25D8%25A8&psig=AOvVaw1r7RaSut-KTctSS6Pw5ENL&ust=1584550270800856',
+          'https://static.onecms.io/wp-content/uploads/sites/9/2019/10/chocolate-scorecard-child-labor-FT-BLOG1019.jpg',
+      'userEmail': _authenticatedUser.email,
+      'userId': _authenticatedUser.id,
     };
-    http
+    return http
         .post('https://flutter-products-152af.firebaseio.com/products.json',
             body: json.encode(productData))
         .then((http.Response res) {
@@ -31,6 +37,7 @@ mixin ConectedProductModel on Model {
           userEmail: _authenticatedUser.email,
           userId: _authenticatedUser.id);
       _products.add(newProduct);
+      _isLoading = false;
       //  for update the widget that wraping by model when exucute this function
       notifyListeners();
     });
@@ -77,10 +84,35 @@ mixin ProductsModel on ConectedProductModel {
     return _products[selctedProductIndex];
   }
 
-  void fetchProducts(){
-  http.get('https://flutter-products-152af.firebaseio.com/products.json').then((http.Response res){
-    print(json.decode(res.body));
-  });
+  void fetchProducts() {
+    _isLoading = true;
+    notifyListeners();
+    http
+        .get('https://flutter-products-152af.firebaseio.com/products.json')
+        .then((http.Response res) {
+      final List<Product> fetchingProductsData = [];
+      final Map<String, dynamic> productDataList = json.decode(res.body);
+      if (productDataList == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+      productDataList.forEach((String productId, dynamic productData) {
+        final Product product = Product(
+          id: productId,
+          title: productData['title'],
+          price: productData['price'],
+          description: productData['description'],
+          image: productData['image'],
+          userEmail: productData['userEmail'],
+          userId: productData['userId'],
+        );
+        fetchingProductsData.add(product);
+      });
+      _products = fetchingProductsData;
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   void updateProduct(
@@ -133,5 +165,10 @@ mixin UserModel on ConectedProductModel {
   void Login(String emial, String password) {
     _authenticatedUser =
         User(email: emial, password: password, id: 'fafadsjnl');
+  }
+}
+mixin UtilityModel on ConectedProductModel {
+  bool get isLoading {
+    return _isLoading;
   }
 }
