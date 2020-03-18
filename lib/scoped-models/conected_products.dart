@@ -85,9 +85,10 @@ mixin ProductsModel on ConectedProductModel {
     return _products[selctedProductIndex];
   }
 
-  void fetchProducts() {
+  Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
+    return 
     http
         .get('https://flutter-products-152af.firebaseio.com/products.json')
         .then((http.Response res) {
