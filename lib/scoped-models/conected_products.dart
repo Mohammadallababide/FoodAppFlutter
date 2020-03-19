@@ -7,7 +7,7 @@ import 'dart:async';
 
 mixin ConectedProductModel on Model {
   List<Product> _products = [];
-  int _selProductIndex;
+  String _selProductId;
   bool _isLoading = false;
   User _authenticatedUser;
   //  here in the addProduct we make the return type of the function is Future to use then method
@@ -66,34 +66,41 @@ mixin ProductsModel on ConectedProductModel {
     return _showFavorite;
   }
 
-// to set index to the selctedProductIndex
-  void selectedProduct(int index) {
-    _selProductIndex = index;
-    if (index == null) {
-      notifyListeners();
-    }
+  int get selectedProductIndex {
+    return _products.indexWhere((Product product) {
+      return product.id == _selProductId;
+    });
   }
 
-  int get selctedProductIndex {
-    return _selProductIndex;
+// to set index to the selctedProductIndex
+  void selectedProduct(String productId) {
+    _selProductId = productId;
+    notifyListeners();
+  }
+
+  String get selctedProductId {
+    return _selProductId;
   }
 
   Product get selctedProduct {
-    if (selctedProductIndex == null) {
+    if (selctedProductId == null) {
       return null;
     }
-    return _products[selctedProductIndex];
+    // firstwhere function return one item when the body is true
+    return _products.firstWhere((Product product) {
+      return product.id == _selProductId;
+    });
   }
 
   Future<Null> fetchProducts() {
     _isLoading = true;
     notifyListeners();
-    return 
-    http
+    return http
         .get('https://flutter-products-152af.firebaseio.com/products.json')
         .then((http.Response res) {
       final List<Product> fetchingProductsData = [];
       final Map<String, dynamic> productDataList = json.decode(res.body);
+      //  here we ensure if the found products on the server
       if (productDataList == null) {
         _isLoading = false;
         notifyListeners();
@@ -114,6 +121,7 @@ mixin ProductsModel on ConectedProductModel {
       _products = fetchingProductsData;
       _isLoading = false;
       notifyListeners();
+      // _selProductId =null;
     });
   }
 
@@ -144,7 +152,7 @@ mixin ProductsModel on ConectedProductModel {
           description: description,
           userEmail: selctedProduct.userEmail,
           userId: selctedProduct.userId);
-      _products[selctedProductIndex] = updateProduct;
+      _products[selectedProductIndex] = updateProduct;
       //  for update the widget that wraping by model when exucute this function
       notifyListeners();
     });
@@ -153,9 +161,10 @@ mixin ProductsModel on ConectedProductModel {
   void deleteProduct() {
     _isLoading = true;
     final deletedProductId = selctedProduct.id;
-    _products.removeAt(selctedProductIndex);
-    _selProductIndex= null;
-     notifyListeners();
+    _products.removeAt(selectedProductIndex);
+    _selProductId = null;
+    //  for update the widget that wraping by model when exucute this function
+    notifyListeners();
     http
         .delete(
             'https://flutter-products-152af.firebaseio.com/products/${deletedProductId}.json')
@@ -163,15 +172,13 @@ mixin ProductsModel on ConectedProductModel {
       _isLoading = false;
       notifyListeners();
     });
-
-    //  for update the widget that wraping by model when exucute this function
-    notifyListeners();
   }
 
   void toggleProductFavoriteStaus() {
     final bool isCurrentFavorite = selctedProduct.isFavorite;
     final bool newFavorite = !isCurrentFavorite;
     final Product upadateProduct = Product(
+      id: selctedProduct.id,
       description: selctedProduct.description,
       price: selctedProduct.price,
       title: selctedProduct.title,
@@ -180,7 +187,7 @@ mixin ProductsModel on ConectedProductModel {
       userEmail: selctedProduct.userEmail,
       userId: selctedProduct.userId,
     );
-    _products[selctedProductIndex] = upadateProduct;
+    _products[selectedProductIndex] = upadateProduct;
 
     //  for update the widget that wraping by model when exucute this function
     notifyListeners();

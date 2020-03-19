@@ -98,7 +98,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     model.addProduct,
                     model.updateProduct,
                     model.selectedProduct,
-                    model.selctedProductIndex),
+                    model.selectedProductIndex),
               );
       },
     );
@@ -148,7 +148,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       return;
     }
     _formKey.currentState.save();
-    if (selectedProductIndex == null) {
+    if (selectedProductIndex == -1) {
       addProduct(
         title: _formData['title'],
         description: _formData['description'],
@@ -179,7 +179,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         builder: (BuildContext context, Widget child, MainModel model) {
       final Widget pageContent =
           _buildPageContent(context, model.selctedProduct);
-      return model.selctedProductIndex == null
+      return model.selectedProductIndex == -1
           ? pageContent
           : Scaffold(
               appBar: AppBar(
