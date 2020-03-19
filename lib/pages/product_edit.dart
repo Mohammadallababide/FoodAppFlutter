@@ -154,9 +154,28 @@ class _ProductEditPageState extends State<ProductEditPage> {
         description: _formData['description'],
         price: _formData['price'],
         image: _formData['image'],
-      ).then((_) {
-        Navigator.pushReplacementNamed(context, '/products')
-            .then((_) => setSelctedProduct(null));
+      ).then((bool sucess) {
+        if (sucess) {
+          Navigator.pushReplacementNamed(context, '/products')
+              .then((_) => setSelctedProduct(null));
+        } else {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Something went wrong!'),
+                  content: Text('Please Try again'),
+                  actions: <Widget>[
+                    FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Okey'),
+                    )
+                  ],
+                );
+              });
+        }
       });
       // here we use then future conseption for see spinner  before navigate to the products
       // page so navigate aaction will wiat until end add products

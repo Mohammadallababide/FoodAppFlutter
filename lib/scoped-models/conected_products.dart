@@ -10,39 +10,6 @@ mixin ConectedProductModel on Model {
   String _selProductId;
   bool _isLoading = false;
   User _authenticatedUser;
-  //  here in the addProduct we make the return type of the function is Future to use then method
-  Future<Null> addProduct(
-      {String title, double price, String description, String image}) {
-    _isLoading = true;
-    notifyListeners();
-    final Map<String, dynamic> productData = {
-      'title': title,
-      'price': price,
-      'description': description,
-      'image':
-          'https://static.onecms.io/wp-content/uploads/sites/9/2019/10/chocolate-scorecard-child-labor-FT-BLOG1019.jpg',
-      'userEmail': _authenticatedUser.email,
-      'userId': _authenticatedUser.id,
-    };
-    return http
-        .post('https://flutter-products-152af.firebaseio.com/products.json',
-            body: json.encode(productData))
-        .then((http.Response res) {
-      final Map<String, dynamic> responseDate = json.decode(res.body);
-      Product newProduct = Product(
-          id: responseDate['name'],
-          title: title,
-          image: image,
-          price: price,
-          description: description,
-          userEmail: _authenticatedUser.email,
-          userId: _authenticatedUser.id);
-      _products.add(newProduct);
-      _isLoading = false;
-      //  for update the widget that wraping by model when exucute this function
-      notifyListeners();
-    });
-  }
 }
 mixin ProductsModel on ConectedProductModel {
   //  if showFavorite is true we will show just favorit item if it null will retutn all items
@@ -92,14 +59,58 @@ mixin ProductsModel on ConectedProductModel {
     });
   }
 
-  Future<Null> fetchProducts() {
+  //  here in the addProduct we make the return type of the function is Future to use then method
+  Future<bool> addProduct(
+      {String title, double price, String description, String image}) async {
     _isLoading = true;
     notifyListeners();
-    return http
-        .get('https://flutter-products-152af.firebaseio.com/products.json')
-        .then((http.Response res) {
+    final Map<String, dynamic> productData = {
+      'title': title,
+      'price': price,
+      'description': description,
+      'image':
+          'https://static.onecms.io/wp-content/uploads/sites/9/2019/10/chocolate-scorecard-child-labor-FT-BLOG1019.jpg',
+      'userEmail': _authenticatedUser.email,
+      'userId': _authenticatedUser.id,
+    };
+    try {
+      final http.Response response = await http.post(
+          'https://flutter-products-152af.firebaseio.com/products.json',
+          body: json.encode(productData));
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      final Map<String, dynamic> responseDate = json.decode(response.body);
+      Product newProduct = Product(
+          id: responseDate['name'],
+          title: title,
+          image: image,
+          price: price,
+          description: description,
+          userEmail: _authenticatedUser.email,
+          userId: _authenticatedUser.id);
+      _products.add(newProduct);
+      _isLoading = false;
+      //  for update the widget that wraping by model when exucute this function
+      notifyListeners();
+      return true;
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<Null> fetchProducts() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final http.Response response = await http
+          .get('https://flutter-products-152af.firebaseio.com/products.json');
       final List<Product> fetchingProductsData = [];
-      final Map<String, dynamic> productDataList = json.decode(res.body);
+      final Map<String, dynamic> productDataList = json.decode(response.body);
       //  here we ensure if the found products on the server
       if (productDataList == null) {
         _isLoading = false;
@@ -122,11 +133,15 @@ mixin ProductsModel on ConectedProductModel {
       _isLoading = false;
       notifyListeners();
       // _selProductId =null;
-    });
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
   }
 
-  Future<Null> updateProduct(
-      {String title, double price, String description, String image}) {
+  Future<bool> updateProduct(
+      {String title, double price, String description, String image}) async {
     _isLoading = true;
     notifyListeners();
     final Map<String, dynamic> updateData = {
@@ -138,11 +153,11 @@ mixin ProductsModel on ConectedProductModel {
       'userEmail': _authenticatedUser.email,
       'userId': _authenticatedUser.id,
     };
-    return http
-        .put(
-            'https://flutter-products-152af.firebaseio.com/products/${selctedProduct.id}.json',
-            body: json.encode(updateData))
-        .then((http.Response response) {
+    try {
+      final http.Response response = await http.put(
+          'https://flutter-products-152af.firebaseio.com/products/${selctedProduct.id}.json',
+          body: json.encode(updateData));
+
       _isLoading = false;
       Product updateProduct = Product(
           id: selctedProduct.id,
@@ -155,23 +170,33 @@ mixin ProductsModel on ConectedProductModel {
       _products[selectedProductIndex] = updateProduct;
       //  for update the widget that wraping by model when exucute this function
       notifyListeners();
-    });
-  }
-
-  void deleteProduct() {
-    _isLoading = true;
-    final deletedProductId = selctedProduct.id;
-    _products.removeAt(selectedProductIndex);
-    _selProductId = null;
-    //  for update the widget that wraping by model when exucute this function
-    notifyListeners();
-    http
-        .delete(
-            'https://flutter-products-152af.firebaseio.com/products/${deletedProductId}.json')
-        .then((http.Response response) {
+      return true;
+    } catch (error) {
       _isLoading = false;
       notifyListeners();
-    });
+      return false;
+    }
+  }
+
+  Future<bool> deleteProduct() async {
+    try {
+      _isLoading = true;
+      final deletedProductId = selctedProduct.id;
+      _products.removeAt(selectedProductIndex);
+      _selProductId = null;
+      //  for update the widget that wraping by model when exucute this function
+      notifyListeners();
+      final http.Response response = await http.delete(
+          'https://flutter-products-152af.firebaseio.com/products/${deletedProductId}.json');
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (error) {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   void toggleProductFavoriteStaus() {
