@@ -156,7 +156,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         image: _formData['image'],
       ).then((bool sucess) {
         if (sucess) {
-          Navigator.pushReplacementNamed(context, '/products')
+          Navigator.pushReplacementNamed(context, '/')
               .then((_) => setSelctedProduct(null));
         } else {
           showDialog(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../scoped-models/main.dart';
 import '../widgets/products/products.dart';
+import '../widgets/ui_elements/log_out_listTile.dart';
 
 class ProductsPage extends StatefulWidget {
   final MainModel model;
@@ -15,6 +16,21 @@ class _StateProductsPage extends State<ProductsPage> {
   initState() {
     widget.model.fetchProducts();
     super.initState();
+  }
+
+  Widget _buildProductsList() {
+    return ScopedModelDescendant<MainModel>(
+        builder: (BuildContext context, Widget child, MainModel model) {
+      Widget content = Center(
+        child: Text('No Product Found!'),
+      );
+      if (model.dissplayedProduct.length > 0 && !model.isLoading) {
+        content = Products();
+      } else if (model.isLoading) {
+        content = Center(child: CircularProgressIndicator());
+      }
+      return RefreshIndicator(child: content, onRefresh: model.fetchProducts);
+    });
   }
 
   Widget _buildSideDrawer(BuildContext context) {
@@ -31,25 +47,12 @@ class _StateProductsPage extends State<ProductsPage> {
             onTap: () {
               Navigator.pushReplacementNamed(context, '/admin');
             },
-          )
+          ),
+          Divider(),
+          LogOutListTile(),
         ],
       ),
     );
-  }
-
-  Widget _buildProductsList() {
-  return   ScopedModelDescendant<MainModel>(
-        builder: (BuildContext context, Widget child, MainModel model) {
-      Widget content = Center(
-        child: Text('No Product Found!'),
-      );
-      if (model.dissplayedProduct.length > 0 && !model.isLoading) {
-        content = Products();
-      } else if (model.isLoading) {
-      content =  Center(child: CircularProgressIndicator());
-      }
-      return RefreshIndicator(child: content, onRefresh: model.fetchProducts);
-    });
   }
 
   @override
